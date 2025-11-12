@@ -1,47 +1,52 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
   <head>
     <meta charset="UTF-8" />
-    <title>Login Example</title>
-    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
+    <title>Auth0 ログインテスト</title>
+
+    <!-- Auth0ライブラリ（絶対に先に読み込む） -->
+    <script src="https://cdn.auth0.com/js/auth0-spa-js/1.13/auth0-spa-js.production.js"></script>
   </head>
   <body>
+    <h2 id="status">未ログイン</h2>
     <button id="login">ログイン</button>
     <button id="logout" style="display:none;">ログアウト</button>
-    <h2 id="status">未ログイン</h2>
 
+    <!-- 自分のスクリプトは後で読み込む -->
     <script>
-      const auth0ClientPromise = createAuth0Client({
-        domain: "dev-umr0vlwpaycxnjos.us.auth0.com", // 例: dev-xxxxxx.us.auth0.com
-        client_id: "gzDzZRsJqSmpbTeohT04szDjbfq6JvBi"
-      });
+      window.addEventListener("DOMContentLoaded", async () => {
+        // Auth0クライアント作成
+        const auth0Client = await createAuth0Client({
+          domain: "dev-umr0vlwpaycxnjos.us.auth0.com",
+          client_id: "gzDzZRsJqSmpbTeohT04szDjbfq6JvBi"
+        });
 
-      async function updateUI() {
-        const auth0Client = await auth0ClientPromise;
-        const isAuthenticated = await auth0Client.isAuthenticated();
-        document.getElementById("status").textContent = isAuthenticated ? "ログイン中" : "未ログイン";
-        document.getElementById("login").style.display = isAuthenticated ? "none" : "inline";
-        document.getElementById("logout").style.display = isAuthenticated ? "inline" : "none";
-      }
+        // UI更新関数
+        async function updateUI() {
+          const isAuthenticated = await auth0Client.isAuthenticated();
+          document.getElementById("status").textContent = isAuthenticated ? "ログイン中" : "未ログイン";
+          document.getElementById("login").style.display = isAuthenticated ? "none" : "inline";
+          document.getElementById("logout").style.display = isAuthenticated ? "inline" : "none";
+        }
 
-      document.getElementById("login").addEventListener("click", async () => {
-        const auth0Client = await auth0ClientPromise;
-        await auth0Client.loginWithRedirect();
-      });
+        // ログイン
+        document.getElementById("login").addEventListener("click", async () => {
+          await auth0Client.loginWithRedirect();
+        });
 
-      document.getElementById("logout").addEventListener("click", async () => {
-        const auth0Client = await auth0ClientPromise;
-        auth0Client.logout({ returnTo: window.location.origin });
-      });
+        // ログアウト
+        document.getElementById("logout").addEventListener("click", () => {
+          auth0Client.logout({ returnTo: window.location.origin });
+        });
 
-      window.onload = async () => {
-        const auth0Client = await auth0ClientPromise;
+        // リダイレクト後の処理
         if (window.location.search.includes("code=") && window.location.search.includes("state=")) {
           await auth0Client.handleRedirectCallback();
           window.history.replaceState({}, document.title, "/");
         }
+
         updateUI();
-      };
+      });
     </script>
   </body>
 </html>
