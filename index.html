@@ -2,51 +2,67 @@
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Auth0 ログインテスト</title>
-
-    <!-- Auth0ライブラリ（絶対に先に読み込む） -->
     <script src="https://cdn.auth0.com/js/auth0-spa-js/1.13/auth0-spa-js.production.js"></script>
   </head>
   <body>
-    <h2 id="status">未ログイン</h2>
+    <h1>Auth0 ログインテスト</h1>
     <button id="login">ログイン</button>
-    <button id="logout" style="display:none;">ログアウト</button>
+    <button id="logout">ログアウト</button>
 
-    <!-- 自分のスクリプトは後で読み込む -->
     <script>
-      window.addEventListener("DOMContentLoaded", async () => {
-        // Auth0クライアント作成
-        const auth0Client = await createAuth0Client({
-          domain: "dev-umr0vlwpaycxnjos.us.auth0.com",
-          client_id: "gzDzZRsJqSmpbTeohT04szDjbfq6JvBi"
+      // Netlifyの環境変数を使う（ビルド時に埋め込まれる）
+      const auth0Domain = "{{AUTH0_DOMAIN}}";
+      const auth0ClientId = "{{AUTH0_CLIENT_ID}}";
+
+      let auth0Client = null;
+
+      // Auth0クライアントを初期化
+      async function initAuth0() {
+        auth0Client = await createAuth0Client({
+          domain: auth0Domain,
+          client_id: auth0ClientId,
+          cacheLocation: "localstorage", // optional: ローカルにセッション保存
         });
 
-        // UI更新関数
-        async function updateUI() {
-          const isAuthenticated = await auth0Client.isAuthenticated();
-          document.getElementById("status").textContent = isAuthenticated ? "ログイン中" : "未ログイン";
-          document.getElementById("login").style.display = isAuthenticated ? "none" : "inline";
-          document.getElementById("logout").style.display = isAuthenticated ? "inline" : "none";
-        }
-
-        // ログイン
-        document.getElementById("login").addEventListener("click", async () => {
-          await auth0Client.loginWithRedirect();
-        });
-
-        // ログアウト
-        document.getElementById("logout").addEventListener("click", () => {
-          auth0Client.logout({ returnTo: window.location.origin });
-        });
-
-        // リダイレクト後の処理
-        if (window.location.search.includes("code=") && window.location.search.includes("state=")) {
+        // URLに ?code=... があればコールバックを処理
+        if (window.location.search.includes("code=")) {
           await auth0Client.handleRedirectCallback();
           window.history.replaceState({}, document.title, "/");
         }
 
-        updateUI();
+        // ログイン状態確認
+        const isAuthenticated = await auth0Client.isAuthenticated();
+        console.log("ログイン状態:", isAuthenticated);
+
+        if (isAuthenticated) {
+          const user = await auth0Client.getUser();
+          alert(`ログイン中: ${user.name || user.email}`);
+        }
+      }
+
+      // ログインボタン
+      document.getElementById("login").addEventListener("click", async () => {
+        await auth0Client.loginWithRedirect({
+          authorizationParams: {
+            redirect_uri: window.location.origin,
+          },
+        });
       });
+
+      // ログアウトボタン
+      document.getElementById("logout").addEventListener("click", async () => {
+        await auth0Client.logout({
+          logoutParams: {
+            returnTo: window.location.origin,
+          },
+        });
+      });
+
+      // 初期化を実行
+      initAuth0();
     </script>
   </body>
 </html>
+
