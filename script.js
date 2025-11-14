@@ -1,7 +1,7 @@
 // Auth0 の設定を受け取る
 const domain = window.env.AUTH0_DOMAIN;
-const clientId = window.env.CLIENT_ID;
-const redirectUri = window.env.REDIRECT_URI;
+const clientId = window.env.AUTH0_CLIENT_ID;
+const redirectUri = window.env.AUTH0_REDIRECT_URI;
 
 // ログインボタンを押したときの動作
 document.getElementById("loginBtn").addEventListener("click", () => {
