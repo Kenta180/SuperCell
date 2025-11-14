@@ -1,0 +1,8 @@
+[build]
+  command = ""
+  publish = "."
+
+[template.environment]
+  AUTH0_DOMAIN = "Your Auth0 domain"
+  AUTH0_CLIENT_ID = "Your Auth0 client ID"
+  AUTH0_REDIRECT_URI = "Your redirect URL"
