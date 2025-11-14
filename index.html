@@ -12,57 +12,45 @@
     <button id="logout">ログアウト</button>
 
     <script>
-      // Netlifyの環境変数を使う（ビルド時に埋め込まれる）
-      const auth0Domain = "{{AUTH0_DOMAIN}}";
-      const auth0ClientId = "{{AUTH0_CLIENT_ID}}";
+      // Netlify の環境変数を埋め込む
+      const auth0Domain = "${AUTH0_DOMAIN}";
+      const auth0ClientId = "${AUTH0_CLIENT_ID}";
 
-      let auth0Client = null;
+      let auth0Client;
 
-      // Auth0クライアントを初期化
       async function initAuth0() {
         auth0Client = await createAuth0Client({
           domain: auth0Domain,
-          client_id: auth0ClientId,
-          cacheLocation: "localstorage", // optional: ローカルにセッション保存
+          clientId: auth0ClientId,
+          cacheLocation: "localstorage",
         });
 
-        // URLに ?code=... があればコールバックを処理
         if (window.location.search.includes("code=")) {
           await auth0Client.handleRedirectCallback();
-          window.history.replaceState({}, document.title, "/");
+          history.replaceState({}, document.title, window.location.pathname);
         }
 
-        // ログイン状態確認
-        const isAuthenticated = await auth0Client.isAuthenticated();
-        console.log("ログイン状態:", isAuthenticated);
-
-        if (isAuthenticated) {
+        if (await auth0Client.isAuthenticated()) {
           const user = await auth0Client.getUser();
-          alert(`ログイン中: ${user.name || user.email}`);
+          console.log("ログイン中:", user);
         }
       }
 
-      // ログインボタン
-      document.getElementById("login").addEventListener("click", async () => {
-        await auth0Client.loginWithRedirect({
+      document.getElementById("login").addEventListener("click", () => {
+        auth0Client.loginWithRedirect({
           authorizationParams: {
             redirect_uri: window.location.origin,
           },
         });
       });
 
-      // ログアウトボタン
-      document.getElementById("logout").addEventListener("click", async () => {
-        await auth0Client.logout({
-          logoutParams: {
-            returnTo: window.location.origin,
-          },
+      document.getElementById("logout").addEventListener("click", () => {
+        auth0Client.logout({
+          logoutParams: { returnTo: window.location.origin },
         });
       });
 
-      // 初期化を実行
       initAuth0();
     </script>
   </body>
 </html>
-
