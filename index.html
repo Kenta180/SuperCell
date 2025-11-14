@@ -1,56 +1,23 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Auth0 ログインテスト</title>
-    <script src="https://cdn.auth0.com/js/auth0-spa-js/1.13/auth0-spa-js.production.js"></script>
-  </head>
-  <body>
-    <h1>Auth0 ログインテスト</h1>
-    <button id="login">ログイン</button>
-    <button id="logout">ログアウト</button>
+<head>
+  <meta charset="UTF-8">
+  <title>SuperCellSMP Login</title>
+</head>
+<body>
+  <h1>SuperCell SMP Login</h1>
 
-    <script>
-      // Netlify の環境変数を埋め込む
-      const auth0Domain = "${AUTH0_DOMAIN}";
-      const auth0ClientId = "${AUTH0_CLIENT_ID}";
+  <button id="loginBtn">ログイン</button>
 
-      let auth0Client;
+  <script>
+    // Netlify の環境変数は script.js に渡す前に window に乗る
+    window.env = {
+      AUTH0_DOMAIN: window.PUBLIC_AUTH0_DOMAIN,
+      CLIENT_ID: window.PUBLIC_AUTH0_CLIENT_ID,
+      REDIRECT_URI: window.PUBLIC_AUTH0_REDIRECT_URI
+    };
+  </script>
 
-      async function initAuth0() {
-        auth0Client = await createAuth0Client({
-          domain: auth0Domain,
-          clientId: auth0ClientId,
-          cacheLocation: "localstorage",
-        });
-
-        if (window.location.search.includes("code=")) {
-          await auth0Client.handleRedirectCallback();
-          history.replaceState({}, document.title, window.location.pathname);
-        }
-
-        if (await auth0Client.isAuthenticated()) {
-          const user = await auth0Client.getUser();
-          console.log("ログイン中:", user);
-        }
-      }
-
-      document.getElementById("login").addEventListener("click", () => {
-        auth0Client.loginWithRedirect({
-          authorizationParams: {
-            redirect_uri: window.location.origin,
-          },
-        });
-      });
-
-      document.getElementById("logout").addEventListener("click", () => {
-        auth0Client.logout({
-          logoutParams: { returnTo: window.location.origin },
-        });
-      });
-
-      initAuth0();
-    </script>
-  </body>
+  <script src="script.js"></script>
+</body>
 </html>
